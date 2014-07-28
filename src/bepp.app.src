@@ -1,0 +1,11 @@
+{application, bepp,
+ [
+  {description, "stdin formatter"},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {env, []}
+ ]}.
