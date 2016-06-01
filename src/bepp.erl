@@ -15,30 +15,34 @@
 %% @doc Format Erlang code from stdin.
 %%
 %%%		<p>This module makes it possible to format partial Erlang code snippets read from stdin.
-%%%		It uses the module <code>string_io</code> which is not part of Erlang/OTP.
-%%%		It is at github.com/ebengt/erlang_string_io.git</p>
+%%%		start/0 can be used like this: "erl -noshell -s bepp < file.erl"
+%%%		If init:stop/0 is too abrupt, use stdin/0.</p>
+%%%		<p>To avoid temporary files it uses the module <code>string_io</code>
+%%%		which is not part of Erlang/OTP.
+%%%		It is at http://github.com/ebengt/erlang_string_io</p>
+%%%		string/1 is used for testing.
 
--module(bepp).
+-module( bepp ).
 
 -export([
-	main/1,
+	start/0,
 	stdin/0,
 	string/1
 	]).
 
 
-main( [_Prog|Files] ) ->
-	pp( Files ),
+start() ->
+	stdin(),
 	init:stop().
 
-
 stdin() ->
-	Reversed_Term = stdin_reversed_line_order( ),
+	Reversed_Term = stdin_reversed_line_order(),
 	PP = pp_reversed_term( Reversed_Term ),
 	io:put_chars( PP ).
 
 string( String ) ->
-	Reversed_Term = string_reversed_line_order( String ),
+	% Make string look like the input from stdin_reversed_line_order/0
+	Reversed_Term = lists:reverse( string:tokens(String, "\n") ),
 	pp_reversed_term( Reversed_Term ).
 	
 
@@ -141,10 +145,6 @@ is_whitespace( _Ch ) ->
 	false.
 
 
-pp( [] ) ->
-	stdin().
-
-
 pp_reversed_term( Reversed_Term ) ->
 	{Term, Added} = term_from_reversed( Reversed_Term ),
 	PP_Term = pp_string( Term ),
@@ -174,17 +174,6 @@ stdin_reversed_line_order( eof, Result ) ->
 	Result;
 stdin_reversed_line_order( Line, Result ) ->
 	stdin_reversed_line_order( io:get_line(''), [Line|Result] ).
-
-
-%%% this will remove all \n from string
-string_reversed_line_order( String ) ->
-	string_reversed_line_order( String, string:chr(String, $\n), [] ).
-string_reversed_line_order( String, 0, Result ) ->
-	[String|Result];
-string_reversed_line_order( String, N, Result ) ->
-	Line = string:substr( String, 1, N ),
-	Rest = string:substr( String, N+1),
-	string_reversed_line_order( Rest, string:chr(Rest, $\n), [Line|Result]).
 
 
 string_to_syntaxtree( String ) ->
